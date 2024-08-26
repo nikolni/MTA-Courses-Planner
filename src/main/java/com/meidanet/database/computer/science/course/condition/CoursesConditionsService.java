@@ -1,24 +1,20 @@
-package com.meidanet.htmlscraper.database.computer.science.course.condition;
+package com.meidanet.database.computer.science.course.condition;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CoursesConditionsService {
+    private final CoursesConditionsRepository coursesConditionsRepository;
 
     @Autowired
-    private CoursesConditionsRepository coursesConditionsRepository;
+    public CoursesConditionsService(CoursesConditionsRepository coursesConditionsRepository) {
+        this.coursesConditionsRepository = coursesConditionsRepository;
+    }
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    @Transactional
+    //@Transactional
     public CSCoursesConditions addCourseCondition(List<String> courseData) {
         CSCoursesConditions conditions = new CSCoursesConditions();
 
@@ -30,7 +26,11 @@ public class CoursesConditionsService {
         return conditions;
     }
 
-    public Optional<CSCoursesConditions> findByCourseId(String courseID) {
+    public CSCoursesConditions findByCourseId(String courseID) {
         return coursesConditionsRepository.findByCourseId(courseID);
+    }
+
+    public CSCoursesConditions findByCourseName(String courseName) {
+        return coursesConditionsRepository.findByCourseName(courseName);
     }
 }

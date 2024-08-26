@@ -1,4 +1,4 @@
-package com.meidanet.htmlscraper.database.computer.science.course.required;
+package com.meidanet.database.computer.science.course.required;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -11,8 +11,13 @@ import java.util.List;
 
 @Service
 public class RequiredCoursesService {
+
+    private final RequiredCoursesRepository requiredCoursesRepository;
+
     @Autowired
-    private RequiredCoursesRepository requiredCoursesRepository;
+    public RequiredCoursesService(RequiredCoursesRepository requiredCoursesRepository) {
+        this.requiredCoursesRepository = requiredCoursesRepository;
+    }
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -41,24 +46,20 @@ public class RequiredCoursesService {
         return requiredCoursesRepository.findByGroup_number(group_number);
     }
 
-    public List<CSCoursesRequired> getAllCourseLessonExercise(String courseIDName){
-        return requiredCoursesRepository.findByCourse_id_name(courseIDName);
-    }
-
-    public List<CSCoursesRequired> getAllCourseLessons(String courseIDName, String semester){
+    public List<CSCoursesRequired> getAllCourseLessons(String courseIdName, String semester){
         if(semester.equals("A")){
-            return requiredCoursesRepository.findCoursesByLessonA(courseIDName);
+            return requiredCoursesRepository.findCoursesByLessonA(courseIdName);
         }
         else
-            return requiredCoursesRepository.findCoursesByLessonB(courseIDName);
+            return requiredCoursesRepository.findCoursesByLessonB(courseIdName);
 
     }
-    public List<CSCoursesRequired> getAllCourseExercises(String courseIDName, String semester){
+    public List<CSCoursesRequired> getAllCourseExercises(String courseIdName, String semester){
         if(semester.equals("A")){
-            return requiredCoursesRepository.findCoursesByExerciseA(courseIDName);
+            return requiredCoursesRepository.findCoursesByExerciseA(courseIdName);
         }
         else
-            return requiredCoursesRepository.findCoursesByExerciseB(courseIDName);
+            return requiredCoursesRepository.findCoursesByExerciseB(courseIdName);
 
     }
 
