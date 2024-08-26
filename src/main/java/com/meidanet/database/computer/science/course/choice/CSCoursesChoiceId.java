@@ -1,4 +1,4 @@
-package com.meidanet.htmlscraper.database.computer.science.course.choice;
+package com.meidanet.database.computer.science.course.choice;
 
 import java.io.Serializable;
 import java.util.Objects;

@@ -1,8 +1,7 @@
-package com.meidanet.htmlscraper.database.computer.science.course.choice;
+package com.meidanet.database.computer.science.course.choice;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,13 +9,18 @@ import java.util.List;
 
 @Service
 public class ChoiceCoursesService {
+
+    private final ChoiceCoursesRepository choiceCoursesRepository;
+
     @Autowired
-    private ChoiceCoursesRepository choiceCoursesRepository;
+    public ChoiceCoursesService(ChoiceCoursesRepository choiceCoursesRepository) {
+        this.choiceCoursesRepository = choiceCoursesRepository;
+    }
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Transactional
+    //@Transactional
     public CSCoursesChoice addChoiceCourse(List<String> courseData) {
         String courseIDName = "סדנת כישורי למידה - 70005";
 
@@ -39,24 +43,20 @@ public class ChoiceCoursesService {
         return choiceCoursesRepository.findByGroup_number(group_number);
     }
 
-    public List<CSCoursesChoice> getAllCourseLessonExercise(String courseIDName){
-        return choiceCoursesRepository.findByCourse_id_name(courseIDName);
-    }
-
-    public List<CSCoursesChoice> getAllCourseLessons(String courseIDName, String semester){
+    public List<CSCoursesChoice> getAllCourseLessons(String courseIdName, String semester){
         if(semester.equals("A")){
-            return choiceCoursesRepository.findCoursesByLessonA(courseIDName);
+            return choiceCoursesRepository.findCoursesByLessonA(courseIdName);
         }
         else
-            return choiceCoursesRepository.findCoursesByLessonB(courseIDName);
+            return choiceCoursesRepository.findCoursesByLessonB(courseIdName);
 
     }
-    public List<CSCoursesChoice> getAllCourseExercises(String courseIDName, String semester){
+    public List<CSCoursesChoice> getAllCourseExercises(String courseIdName, String semester){
         if(semester.equals("A")){
-            return choiceCoursesRepository.findCoursesByExerciseA(courseIDName);
+            return choiceCoursesRepository.findCoursesByExerciseA(courseIdName);
         }
         else
-            return choiceCoursesRepository.findCoursesByExerciseB(courseIDName);
+            return choiceCoursesRepository.findCoursesByExerciseB(courseIdName);
 
     }
 }

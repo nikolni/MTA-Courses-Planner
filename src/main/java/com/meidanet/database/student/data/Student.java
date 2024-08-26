@@ -1,4 +1,4 @@
-package com.meidanet.htmlscraper.database.user;
+package com.meidanet.database.student.data;
 
 import jakarta.persistence.*;
 
