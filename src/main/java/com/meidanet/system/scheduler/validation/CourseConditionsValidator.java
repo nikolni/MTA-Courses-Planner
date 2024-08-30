@@ -34,7 +34,6 @@ public class CourseConditionsValidator {
 
         //for each course check his conditions
         for (CSCoursesConditions courseCondition : coursesConditions) {
-
             List<String> prerequisite_List = stringSplitByComma(courseCondition.getPrerequisite());
             List<String> pre_exchangeable_List = stringSplitByComma(courseCondition.getPre_exchangeable());
             List<String> parallel_condition_List = stringSplitByComma(courseCondition.getParallel_condition());
@@ -123,21 +122,25 @@ public class CourseConditionsValidator {
         List<CSCoursesConditions> coursesConditions = new ArrayList<>();
 
         for (CoursePreferences courseCodeName : preferredRequiredCourses) {
-            String courseId = stringSplitByHyphen(courseCodeName.getCourseCodeName()).get(0);
-            // Fetch the condition for each courseId
-            CSCoursesConditions condition = coursesConditionsService.findByCourseId(courseId);
+            if(!courseCodeName.getCourseCodeName().isEmpty()) {
+                String courseId = stringSplitByHyphen(courseCodeName.getCourseCodeName()).get(0);
+                // Fetch the condition for each courseId
+                CSCoursesConditions condition = coursesConditionsService.findByCourseId(courseId);
 
-            // If the condition is present, add it to the list
-            coursesConditions.add(condition);
+                // If the condition is present, add it to the list
+                coursesConditions.add(condition);
+            }
         }
 
         for (CoursePreferences courseCodeName : preferredChoiceCourses) {
-            String courseId = stringSplitByHyphen(courseCodeName.getCourseCodeName()).get(0);
-            // Fetch the condition for each courseId
-            CSCoursesConditions condition = coursesConditionsService.findByCourseId(courseId);
+            if(!courseCodeName.getCourseCodeName().isEmpty()) {
+                String courseId = stringSplitByHyphen(courseCodeName.getCourseCodeName()).get(0);
+                // Fetch the condition for each courseId
+                CSCoursesConditions condition = coursesConditionsService.findByCourseId(courseId);
 
-            // If the condition is present, add it to the list
-            coursesConditions.add(condition);
+                // If the condition is present, add it to the list
+                coursesConditions.add(condition);
+            }
         }
 
         return coursesConditions;
