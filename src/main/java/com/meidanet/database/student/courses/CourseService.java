@@ -1,8 +1,8 @@
-package com.meidanet.htmlscraper.database.courses;
+package com.meidanet.database.student.courses;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,10 +12,17 @@ import java.util.regex.Pattern;
 @Service
 public class CourseService {
 
+    private final CourseRepository courseRepository;
+
+    @Autowired
+    public CourseService(CourseRepository courseRepository) {
+        this.courseRepository = courseRepository;
+    }
+
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Transactional
+    //@Transactional
     public Course addCourse(String[] courseDetails, String stuID) {
         String courseID = courseDetails[0];
         // Check if the course name already exists
@@ -53,5 +60,9 @@ public class CourseService {
         } else {
             throw new IllegalArgumentException("Invalid course info format");
         }
+    }
+
+    public List<Course> getStudentCourses(String student_id){
+        return courseRepository.findByStudent_id(student_id);
     }
 }

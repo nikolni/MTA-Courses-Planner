@@ -1,4 +1,4 @@
-package com.meidanet.htmlscraper.database.courses;
+package com.meidanet.database.student.courses;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
