@@ -62,7 +62,7 @@ public class Scheduler {
         List<CSCoursesRequired> requiredLessonsHours = getRequiredLessonsHours(validRequiredLessons, "A");
         List<CSCoursesChoice> choiceLessonsHours = getChoiceLessonsHours(validChoiceLessons, "A");
 
-        scheduleValidatorService.validateForSemesterA(requiredLessonsHours, choiceLessonsHours, preferencesForm, finalSystem);
+        scheduleValidatorService.validateForSemesterA(validRequiredLessons, requiredLessonsHours, validChoiceLessons, choiceLessonsHours, finalSystem);
     }
 
     private void getScheduleSemesterB(PreferencesForm preferencesForm, FinalSystem finalSystem, ScheduleValidatorService scheduleValidatorService) {
@@ -78,7 +78,8 @@ public class Scheduler {
         List<CSCoursesRequired> requiredLessonsHours = getRequiredLessonsHours(validRequiredLessons, "B");
         List<CSCoursesChoice> choiceLessonsHours = getChoiceLessonsHours(validChoiceLessons, "B");
 
-        scheduleValidatorService.validateForSemesterB(requiredLessonsHours, choiceLessonsHours, preferencesForm, finalSystem);
+        scheduleValidatorService.validateForSemesterB(validRequiredLessons, requiredLessonsHours, validChoiceLessons, choiceLessonsHours, finalSystem);
+
 
     }
 
@@ -102,15 +103,17 @@ public class Scheduler {
         boolean invalidLesson;
 
         for (CoursePreferences course : courses) {
-            invalidLesson = false;
-            for (CSCoursesConditions invalidCourse : invalidCoursesRequest){
-                if (course.getCourseCodeName().equals(invalidCourse.getCourse_id_name())) {
-                    invalidLesson = true;
-                    break;
+            if (!course.getCourseCodeName().equals("")) {
+                invalidLesson = false;
+                for (CSCoursesConditions invalidCourse : invalidCoursesRequest) {
+                    if (course.getCourseCodeName().equals(invalidCourse.getCourse_id_name())) {
+                        invalidLesson = true;
+                        break;
+                    }
                 }
-            }
-            if(!invalidLesson){
-                validCourses.add(course);
+                if (!invalidLesson) {
+                    validCourses.add(course);
+                }
             }
         }
 
