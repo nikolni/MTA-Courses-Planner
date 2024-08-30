@@ -49,6 +49,14 @@ public class PreferencesFormController {
         catch (Exception e) {
             throw new RuntimeException(e);
         }
+         ObjectMapper objectMapper = new ObjectMapper();
+
+        // Create ObjectWriter with pretty printing
+        ObjectWriter writer = objectMapper.writerWithDefaultPrettyPrinter();
+        // Convert the object to JSON with pretty printing
+        String prettyJsonString = writer.writeValueAsString(finalSystem);
+        // Print the pretty JSON string
+        System.out.println(prettyJsonString);
 
 
         return ResponseEntity.ok(finalSystem);

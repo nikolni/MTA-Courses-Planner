@@ -3,7 +3,6 @@ package com.meidanet.system.scheduler.validation;
 
 import com.meidanet.database.computer.science.course.choice.CSCoursesChoice;
 import com.meidanet.database.computer.science.course.required.CSCoursesRequired;
-import com.meidanet.system.preference.form.PreferencesForm;
 import com.meidanet.system.preference.form.course.request.CoursePreferences;
 import com.meidanet.system.scheduler.answer.FinalSystem;
 
@@ -20,28 +19,27 @@ public class ScheduleValidatorService {
     public static final String CHOICE_CHOICE_CONFLICTS = "3";
 
 
-    public void validateForSemesterA(List<CSCoursesRequired> requiredLessonsHours, List<CSCoursesChoice> choiceLessonsHours,
-                                        PreferencesForm preferencesForm, FinalSystem finalSystem){
+    public void validateForSemesterA(List<CoursePreferences> validRequiredLessons, List<CSCoursesRequired> requiredLessonsHours, List<CoursePreferences> validChoiceLessons,
+                                     List<CSCoursesChoice> choiceLessonsHours, FinalSystem finalSystem){
 
-        searchConflicts(preferencesForm.getSelectedCoursesData().getRequiredSemesterA(), preferencesForm.getSelectedCoursesData().getRequiredSemesterA(),
+        searchConflicts(validRequiredLessons, validRequiredLessons,
                 requiredLessonsHours, choiceLessonsHours, finalSystem, REQ_REQ_CONFLICTS, "A");
-        searchConflicts(preferencesForm.getSelectedCoursesData().getRequiredSemesterA(), preferencesForm.getSelectedCoursesData().getChoiceSemesterA(),
+        searchConflicts(validRequiredLessons, validChoiceLessons,
                 requiredLessonsHours, choiceLessonsHours, finalSystem, REQ_CHOICE_CONFLICTS, "A");
-        searchConflicts(preferencesForm.getSelectedCoursesData().getChoiceSemesterA(), preferencesForm.getSelectedCoursesData().getChoiceSemesterA(),
+        searchConflicts(validChoiceLessons, validChoiceLessons,
                 requiredLessonsHours, choiceLessonsHours, finalSystem, CHOICE_CHOICE_CONFLICTS, "A" );
 
     }
 
 
 
-    public void validateForSemesterB(List<CSCoursesRequired> requiredLessonsHours, List<CSCoursesChoice> choiceLessonsHours,
-                                     PreferencesForm preferencesForm, FinalSystem finalSystem){
-
-        searchConflicts(preferencesForm.getSelectedCoursesData().getRequiredSemesterB(), preferencesForm.getSelectedCoursesData().getRequiredSemesterB(),
+    public void validateForSemesterB(List<CoursePreferences> validRequiredLessons, List<CSCoursesRequired> requiredLessonsHours, List<CoursePreferences> validChoiceLessons,
+                                     List<CSCoursesChoice> choiceLessonsHours, FinalSystem finalSystem){
+        searchConflicts(validRequiredLessons, validRequiredLessons,
                 requiredLessonsHours, choiceLessonsHours, finalSystem, REQ_REQ_CONFLICTS, "B");
-        searchConflicts(preferencesForm.getSelectedCoursesData().getRequiredSemesterB(), preferencesForm.getSelectedCoursesData().getChoiceSemesterB(),
+        searchConflicts(validRequiredLessons, validChoiceLessons,
                 requiredLessonsHours, choiceLessonsHours, finalSystem, REQ_CHOICE_CONFLICTS, "B");
-        searchConflicts(preferencesForm.getSelectedCoursesData().getChoiceSemesterB(), preferencesForm.getSelectedCoursesData().getChoiceSemesterB(),
+        searchConflicts(validChoiceLessons, validChoiceLessons,
                 requiredLessonsHours, choiceLessonsHours, finalSystem, CHOICE_CHOICE_CONFLICTS, "B" );
     }
 
@@ -59,6 +57,7 @@ public class ScheduleValidatorService {
         String exeKey2 = null;
 
         for(CoursePreferences course1 : primaryList){
+            changes.clear();
 
             CoursePreferences finalCourse;
             String exeLesson1 = "";
