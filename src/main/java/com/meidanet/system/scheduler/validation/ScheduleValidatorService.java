@@ -2,9 +2,12 @@ package com.meidanet.system.scheduler.validation;
 
 
 import com.meidanet.database.computer.science.course.choice.CSCoursesChoice;
+import com.meidanet.database.computer.science.course.choice.ChoiceCoursesService;
 import com.meidanet.database.computer.science.course.required.CSCoursesRequired;
+import com.meidanet.database.computer.science.course.required.RequiredCoursesService;
 import com.meidanet.system.preference.form.course.request.CoursePreferences;
 import com.meidanet.system.scheduler.answer.FinalSystem;
+import com.meidanet.system.scheduler.helper.FinalSystemHelper;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -18,6 +21,15 @@ public class ScheduleValidatorService {
     public static final String REQ_CHOICE_CONFLICTS = "2";
     public static final String CHOICE_CHOICE_CONFLICTS = "3";
 
+   private final RequiredCoursesService requiredCoursesService;
+   private final ChoiceCoursesService choiceCoursesService;
+   private final FinalSystemHelper finalSystemHelper = new FinalSystemHelper();
+
+
+    public ScheduleValidatorService(RequiredCoursesService requiredCoursesService, ChoiceCoursesService choiceCoursesService){
+        this.requiredCoursesService = requiredCoursesService;
+        this.choiceCoursesService = choiceCoursesService;
+    }
 
     public void validateForSemesterA(List<CoursePreferences> validRequiredLessons, List<CSCoursesRequired> requiredLessonsHours, List<CoursePreferences> validChoiceLessons,
                                      List<CSCoursesChoice> choiceLessonsHours, FinalSystem finalSystem){
@@ -51,13 +63,14 @@ public class ScheduleValidatorService {
         Map<String, List<CSCoursesRequired>> requiredGroups = groupByRequiredCourseAndGroup(requiredLessonsHours);
         Map<String, List<CSCoursesChoice>> choiceGroups = groupByChoiceCourseAndGroup(choiceLessonsHours);
         Map<String, Boolean> isCourseCompared = new HashMap<>();
-        List<String> changes = new ArrayList<>();
+        List<String> changes = null;
 
         String exeKey1 = null;
         String exeKey2 = null;
 
         for(CoursePreferences course1 : primaryList){
-            changes.clear();
+            if(changes != null)
+                changes.clear();
 
             CoursePreferences finalCourse;
             String exeLesson1 = "";
@@ -69,6 +82,8 @@ public class ScheduleValidatorService {
                 if(course1.isHasExercise()) {
                     if (course1.getExerciseCode().equals("dc")) {
                         exeLesson1 = createExerciseNumberFromGroupNumber(course1.getLessonCode());
+                        if(changes == null)
+                            changes = new ArrayList<>();
                         changes.add("In course '" + course1.getCourseCodeName() + "' a default selection was made for the exercise group.");
                         exeKey1 = course1.getCourseCodeName() + '-' + exeLesson1;
                     } else {
@@ -90,7 +105,12 @@ public class ScheduleValidatorService {
                         boolean isConflictFree = isConflicted(type, key1, key2, exeKey1, exeKey2, requiredGroups, choiceGroups);
 
                         if(!isConflictFree){
-                            finalSystem.addError("Please note: the courses: '" + course1.getCourseCodeName() + "' and '" + course2.getCourseCodeName() +
+                            if(semester.equals("A")){
+                                finalSystem.addErrorA("Please note: the courses: '" + course1.getCourseCodeName() + "' and '" + course2.getCourseCodeName() +
+                                        "' conflict with study hours. Please choose other study hours");
+                            }
+                            else
+                                finalSystem.addErrorB("Please note: the courses: '" + course1.getCourseCodeName() + "' and '" + course2.getCourseCodeName() +
                                     "' conflict with study hours. Please choose other study hours");
                         }
                     }
@@ -117,6 +137,8 @@ public class ScheduleValidatorService {
         String group_number = "";
         String exercise_group_number = "";
 
+        if(changes == null)
+            changes = new ArrayList<>();
         changes.add("In course '" + course1.getCourseCodeName() + "' a default selection was made for the lesson group.");
 
         //if course1 is req, take care after comparing to all req and all choice
@@ -164,8 +186,15 @@ public class ScheduleValidatorService {
             }
         }
         if(!isConflictFree){
-            finalSystem.addError("All groups of course '" + groupNumbersList.get(0).getCourse_id_name() + "' conflict with the other courses." +
-                    "This course is a mandatory course, so it is recommended to change the choice of hours to other courses.");
+            if(semester.equals("A")){
+                finalSystem.addErrorA("All groups of course '" + groupNumbersList.get(0).getCourse_id_name() + "' conflict with the other courses." +
+                        "This course is a mandatory course, so it is recommended to change the choice of hours to other courses.");
+
+            }
+            else
+                finalSystem.addErrorB("All groups of course '" + groupNumbersList.get(0).getCourse_id_name() + "' conflict with the other courses." +
+                        "This course is a mandatory course, so it is recommended to change the choice of hours to other courses.");
+
         }
         return group_number;
     }
@@ -193,16 +222,20 @@ public class ScheduleValidatorService {
             }
         }
         if(!isConflictFree){
-            finalSystem.addError("All groups of course '" + groupNumbersList.get(0).getCourse_id_name() + "' conflict with the other courses. A default group was selected.");
+            if(semester.equals("A")){
+                finalSystem.addErrorA("All groups of course '" + groupNumbersList.get(0).getCourse_id_name() + "' conflict with the other courses. A default group was selected.");
+            }
+            else
+                finalSystem.addErrorB("All groups of course '" + groupNumbersList.get(0).getCourse_id_name() + "' conflict with the other courses. A default group was selected.");
         }
         return group_number;
     }
 
     private boolean searchConflictInSemesterAReq(FinalSystem finalSystem, boolean isConflictFree, List<CSCoursesRequired> optionalGroup,
-                                              Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups){
+                                                 Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups){
         //עבור כל קורס שכבר נוסף לאובייקט הסופי, נבדוק שהקבוצה הנבדקת לא גורמת להתנגשויות
         if(finalSystem.getRequiredSemesterA() != null) {
-            for (CoursePreferences reqCourse : finalSystem.getRequiredSemesterA()) {
+            for (CoursePreferences reqCourse : finalSystemHelper.getRequiredSemesterA()) {
                 if (isConflictFree) {
                     String key = reqCourse.getCourseCodeName() + '-' + reqCourse.getLessonCode();
                     List<CSCoursesRequired> courseFromFinals = requiredGroups.get(key);
@@ -215,7 +248,7 @@ public class ScheduleValidatorService {
             }
         }
         if(finalSystem.getChoiceSemesterA() != null) {
-            for (CoursePreferences choiceCourse : finalSystem.getChoiceSemesterA()) {
+            for (CoursePreferences choiceCourse : finalSystemHelper.getChoiceSemesterA()) {
                 if (isConflictFree){
                     String key = choiceCourse.getCourseCodeName() + '-' + choiceCourse.getLessonCode();
                     List<CSCoursesChoice> courseFromFinals = choiceGroups.get(key);
@@ -234,7 +267,7 @@ public class ScheduleValidatorService {
     private boolean searchConflictInSemesterBReq(FinalSystem finalSystem, boolean isConflictFree, List<CSCoursesRequired> optionalGroup,
                                               Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups){
         if(finalSystem.getRequiredSemesterB() != null) {
-            for (CoursePreferences reqCourse : finalSystem.getRequiredSemesterB()) {
+            for (CoursePreferences reqCourse : finalSystemHelper.getRequiredSemesterB()) {
                 if (isConflictFree){
                     String key = reqCourse.getCourseCodeName() + '-' + reqCourse.getLessonCode();
                     List<CSCoursesRequired> courseFromFinals = requiredGroups.get(key);
@@ -247,7 +280,7 @@ public class ScheduleValidatorService {
             }
         }
         if(finalSystem.getChoiceSemesterB() != null) {
-            for (CoursePreferences choiceCourse : finalSystem.getChoiceSemesterB()) {
+            for (CoursePreferences choiceCourse : finalSystemHelper.getChoiceSemesterB()) {
                 if (isConflictFree) {
                     String key = choiceCourse.getCourseCodeName() + '-' + choiceCourse.getLessonCode();
                     List<CSCoursesChoice> courseFromFinals = choiceGroups.get(key);
@@ -266,7 +299,7 @@ public class ScheduleValidatorService {
     private boolean searchConflictInSemesterAChoice(FinalSystem finalSystem, boolean isConflictFree, List<CSCoursesChoice> optionalGroup,
                                               Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups){
         if(finalSystem.getRequiredSemesterA() != null) {
-            for (CoursePreferences reqCourse : finalSystem.getRequiredSemesterA()) {
+            for (CoursePreferences reqCourse : finalSystemHelper.getRequiredSemesterA()) {
                 if (isConflictFree) {
                     String key = reqCourse.getCourseCodeName() + '-' + reqCourse.getLessonCode();
                     List<CSCoursesRequired> courseFromFinals = requiredGroups.get(key);
@@ -279,7 +312,7 @@ public class ScheduleValidatorService {
             }
         }
         if(finalSystem.getChoiceSemesterA() != null) {
-            for (CoursePreferences choiceCourse : finalSystem.getChoiceSemesterA()) {
+            for (CoursePreferences choiceCourse : finalSystemHelper.getChoiceSemesterA()) {
                 if (isConflictFree) {
                     String key = choiceCourse.getCourseCodeName() + '-' + choiceCourse.getLessonCode();
                     List<CSCoursesChoice> courseFromFinals = choiceGroups.get(key);
@@ -297,7 +330,7 @@ public class ScheduleValidatorService {
     private boolean searchConflictInSemesterBChoice(FinalSystem finalSystem, boolean isConflictFree, List<CSCoursesChoice> optionalGroup,
                                               Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups){
         if(finalSystem.getRequiredSemesterB() != null) {
-            for (CoursePreferences reqCourse : finalSystem.getRequiredSemesterB()) {
+            for (CoursePreferences reqCourse : finalSystemHelper.getRequiredSemesterB()) {
                 if (isConflictFree) {
                     String key = reqCourse.getCourseCodeName() + '-' + reqCourse.getLessonCode();
                     List<CSCoursesRequired> courseFromFinals = requiredGroups.get(key);
@@ -310,7 +343,7 @@ public class ScheduleValidatorService {
             }
         }
         if(finalSystem.getChoiceSemesterB() != null) {
-            for (CoursePreferences choiceCourse : finalSystem.getChoiceSemesterB()) {
+            for (CoursePreferences choiceCourse : finalSystemHelper.getChoiceSemesterB()) {
                 if (isConflictFree) {
                     String key = choiceCourse.getCourseCodeName() + '-' + choiceCourse.getLessonCode();
                     List<CSCoursesChoice> courseFromFinals = choiceGroups.get(key);
@@ -403,18 +436,41 @@ public class ScheduleValidatorService {
     private void addCourseToFinalSystem(FinalSystem finalSystem, String type, CoursePreferences finalCourse, String semester, List<String> changes) {
 
         if(type.equals(REQ_CHOICE_CONFLICTS)){
-            if(semester.equals("A"))
-                finalSystem.addReqCourseSemA(finalCourse);
-            if(semester.equals("B"))
-                finalSystem.addReqCourseSemB(finalCourse);
-            finalSystem.addChanges(changes);
+            List<CSCoursesRequired> requiredList = requiredCoursesService.getLessonHours(finalCourse.getLessonCode());
+            if(finalCourse.isHasExercise()){
+                requiredList.addAll(requiredCoursesService.getLessonHours(finalCourse.getExerciseCode()));
+            }
+            if(semester.equals("A")) {
+                finalSystemHelper.addReqCourseSemA(finalCourse);
+                for(CSCoursesRequired required : requiredList)
+                    finalSystem.addReqCourseSemA(required);
+                finalSystem.addChangesA(changes);
+            }
+            if(semester.equals("B")) {
+                finalSystemHelper.addReqCourseSemB(finalCourse);
+                for(CSCoursesRequired required : requiredList)
+                    finalSystem.addReqCourseSemB(required);
+                finalSystem.addChangesB(changes);
+            }
         }
         if(type.equals(CHOICE_CHOICE_CONFLICTS)){
-            if(semester.equals("A"))
-                finalSystem.addChoCourseSemA(finalCourse);
-            if(semester.equals("B"))
-                finalSystem.addChoCourseSemB(finalCourse);
-            finalSystem.addChanges(changes);
+            List<CSCoursesChoice> choiceList = choiceCoursesService.getLessonHours(finalCourse.getLessonCode());
+            if(finalCourse.isHasExercise()){
+                choiceList.addAll(choiceCoursesService.getLessonHours(finalCourse.getExerciseCode()));
+            }
+            if(semester.equals("A")) {
+                finalSystemHelper.addChoCourseSemA(finalCourse);
+                for(CSCoursesChoice choice : choiceList)
+                    finalSystem.addChoCourseSemA(choice);
+                finalSystem.addChangesA(changes);
+
+            }
+            if(semester.equals("B")) {
+                finalSystemHelper.addChoCourseSemB(finalCourse);
+                for(CSCoursesChoice choice : choiceList)
+                    finalSystem.addChoCourseSemB(choice);
+                finalSystem.addChangesB(changes);
+            }
         }
     }
 

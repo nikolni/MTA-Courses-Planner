@@ -21,6 +21,7 @@ public class HtmlScraperApplication {
                 registry.addMapping("/**")
                         .allowedOrigins("https://rishum.mta.ac.il")
                         .allowedOrigins("http://localhost:3000")
+                        .allowedOrigins("https://mta-courses-planner-f96c9.web.app")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true)
