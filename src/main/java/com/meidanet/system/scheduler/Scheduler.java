@@ -44,7 +44,7 @@ public class Scheduler {
     public void getSchedule(PreferencesForm preferencesForm, FinalSystem finalSystem) {
         finalSystem.setStudentID(preferencesForm.getStudentId());
 
-        ScheduleValidatorService scheduleValidatorService = new ScheduleValidatorService();
+        ScheduleValidatorService scheduleValidatorService = new ScheduleValidatorService(requiredCoursesService, choiceCoursesService);
         getScheduleSemesterA(preferencesForm, finalSystem, scheduleValidatorService);
         getScheduleSemesterB(preferencesForm, finalSystem, scheduleValidatorService);
     }
@@ -54,7 +54,8 @@ public class Scheduler {
         getStudentCourses(preferencesForm.getStudentId());
 
         //fills the class member invalidCoursesRequest
-        checkConditions(preferencesForm.getSelectedCoursesData().getRequiredSemesterA(), preferencesForm.getSelectedCoursesData().getChoiceSemesterA(), finalSystem);
+        checkConditions(preferencesForm.getSelectedCoursesData().getRequiredSemesterA(), preferencesForm.getSelectedCoursesData().getChoiceSemesterA(),
+                finalSystem, "A");
 
         List<CoursePreferences> validRequiredLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getRequiredSemesterA());
         List<CoursePreferences> validChoiceLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getChoiceSemesterA());
@@ -70,7 +71,8 @@ public class Scheduler {
         getStudentCourses(preferencesForm.getStudentId());
 
         //fills the class member invalidCoursesRequest
-        checkConditions(preferencesForm.getSelectedCoursesData().getRequiredSemesterB(), preferencesForm.getSelectedCoursesData().getChoiceSemesterB(), finalSystem);
+        checkConditions(preferencesForm.getSelectedCoursesData().getRequiredSemesterB(), preferencesForm.getSelectedCoursesData().getChoiceSemesterB(),
+                finalSystem, "B");
 
         List<CoursePreferences> validRequiredLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getRequiredSemesterB());
         List<CoursePreferences> validChoiceLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getChoiceSemesterB());
@@ -88,13 +90,17 @@ public class Scheduler {
     }
 
 
-    private void checkConditions(List<CoursePreferences> requiredList, List<CoursePreferences> choiceList, FinalSystem finalSystem) {
+    private void checkConditions(List<CoursePreferences> requiredList, List<CoursePreferences> choiceList, FinalSystem finalSystem, String semester) {
         CourseConditionsValidator conditionsValidator = new CourseConditionsValidator(studentCourses, csCoursesConditionsService, requiredList, choiceList );
         invalidCoursesRequest = conditionsValidator.getBedCoursesRequest();
         List<String> errors = conditionsValidator.getErrorsList();
         if(errors != null){
-            for(String error : errors)
-                finalSystem.addError(error);
+            for(String error : errors) {
+                if(semester.equals("A"))
+                    finalSystem.addErrorA(error);
+                else
+                    finalSystem.addErrorB(error);
+            }
         }
     }
 
@@ -103,7 +109,7 @@ public class Scheduler {
         boolean invalidLesson;
 
         for (CoursePreferences course : courses) {
-            if (!course.getCourseCodeName().equals("")) {
+            if (!course.getCourseCodeName().isEmpty()) {
                 invalidLesson = false;
                 for (CSCoursesConditions invalidCourse : invalidCoursesRequest) {
                     if (course.getCourseCodeName().equals(invalidCourse.getCourse_id_name())) {
