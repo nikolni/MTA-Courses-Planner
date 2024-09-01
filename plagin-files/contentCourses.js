@@ -1,9 +1,18 @@
 
+const { href } = window.location;
+const alreadyLoaded = JSON.parse(localStorage.loaded || '[]');
+if (!alreadyLoaded.includes(href)) {
+  alreadyLoaded.push(href);
+  localStorage.loaded = JSON.stringify(alreadyLoaded);
+  window.addEventListener('load',onLoadHandler);
+}
+
+//window.addEventListener('load',onLoadHandler, once);
 
 // Flag to ensure the script runs only once
 let scriptHasRun = false;
 
-//window.addEventListener('load', onLoadHandler);
+window.addEventListener('load',onLoadHandler);
 
 // Wait for the page to load completely
 function onLoadHandler() {
@@ -21,6 +30,7 @@ function onLoadHandler() {
 
 // Function to monitor DOM changes and click the button once it's available
 function monitorDOMChanges(selector, callback) {
+  localStorage.clear();
   const observer = new MutationObserver((mutationsList, observer) => {
     if (document.querySelector(selector)) {
       callback(selector);
